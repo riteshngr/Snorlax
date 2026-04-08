@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Marketplace from "../../pages/Marketplace";
 
 export default function DashboardLayout() {
   // Tracks which panel is currently taking up the full screen
@@ -84,16 +85,17 @@ export default function DashboardLayout() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="absolute inset-0 z-50 flex flex-col bg-gray-950 p-8"
+            className="absolute inset-0 z-50 flex flex-col bg-[#070412]"
           >
-            <div className="flex items-center justify-between border-b border-gray-800 pb-4">
-               {/* Note: Close button on the left for the right-side panel feels more natural */}
-              <button onClick={closePanel} className="text-gray-500 hover:text-white text-3xl transition-colors">✕</button>
-              <h2 className="text-4xl font-black text-blue-500 uppercase tracking-tight">Live Market</h2>
-            </div>
-            <div className="flex h-full w-full items-center justify-center">
-              {/* Dev drops Marketplace Component here */}
-              <span className="text-gray-600">[ Marketplace Feed Goes Here ]</span>
+            {/* Close button floating over the marketplace */}
+            <button 
+              onClick={closePanel} 
+              className="absolute left-4 top-4 z-[60] flex h-9 w-9 items-center justify-center rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 text-gray-400 hover:text-white hover:bg-gray-700/80 text-lg transition-all hover:scale-110"
+            >
+              ✕
+            </button>
+            <div className="flex-1 overflow-hidden">
+              <Marketplace />
             </div>
           </motion.div>
         )}
