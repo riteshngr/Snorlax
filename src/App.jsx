@@ -1,13 +1,20 @@
-// No image imports needed here!
+import PokeballSplash from "./components/gacha/PokeballSplash";
+import DashboardLayout from "./components/layout/DashboardLayout"; // Import the new layout
 
 function App() {
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-900">
-      <button className="rounded-lg bg-blue-500 px-6 py-3 font-bold text-white transition-all hover:bg-blue-600 hover:scale-105">
-        Snorlax is awake!
-      </button>
+    <div className="bg-gray-900 min-h-screen text-white">
+      
+      {/* The cinematic reveal */}
+      <PokeballSplash>
+        
+        {/* The main app structure is revealed when the ball opens */}
+        <DashboardLayout />
+
+      </PokeballSplash>
+
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
