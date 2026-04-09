@@ -31,12 +31,12 @@ const RARITY_STYLES = {
     glow: "shadow-purple-500/60 shadow-2xl animate-[pulse_3s_infinite]",
   },
   Legendary: {
-    border: "border-golden-gradient shadow-golden-glow shadow-2xl",
+    border: "border-transparent shadow-golden-glow shadow-2xl",
     badge: "bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 border-yellow-200 shadow-lg",
     glow: "animate-[pulse_4s_infinite]",
   },
   Mythical: {
-    border: "border-holographic shadow-pink-400/50 shadow-2xl",
+    border: "border-transparent shadow-pink-400/50 shadow-2xl",
     badge: "bg-gradient-to-r from-pink-400 to-fuchsia-500 text-white border-pink-200 shadow-lg",
     glow: "animate-[pulse_3s_infinite]",
   },
@@ -144,16 +144,51 @@ export default function PokemonCard({ card }) {
           className={`
             absolute inset-0 rounded-2xl overflow-hidden
             bg-gradient-to-br ${gradient}
+            border-4 ${rarityStyle.border}
             backdrop-blur-md shadow-xl
             [backface-visibility:hidden]
-            ${rarityStyle.border}
             ${rarityStyle.glow}
             ${card.rarity === 'Mythical' ? 'holographic-shine' : ''}
           `}
         >
-          {/* Custom Border Overlays for High Rarity */}
-          {card.rarity === 'Legendary' && <div className="absolute inset-0 border-4 border-transparent bg-gradient-to-br from-[#FFD700] via-[#FFB000] to-[#FFC300] [mask:linear-gradient(#fff_0_0)_padding-box,linear-gradient(#fff_0_0)] [mask-composite:exclude] rounded-2xl pointer-events-none" />}
-          {card.rarity === 'Mythical' && <div className="absolute inset-0 border-4 border-transparent holographic-border-bg rounded-2xl pointer-events-none" />}
+          {/* Custom SVG Border Overlays for High Rarity (Reliable & Premium) */}
+          {(card.rarity === 'Legendary' || card.rarity === 'Mythical') && (
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-50 overflow-visible">
+              <defs>
+                <linearGradient id={`goldGrad-${card.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FFD700" />
+                  <stop offset="50%" stopColor="#FFC300" />
+                  <stop offset="100%" stopColor="#FFB000" />
+                </linearGradient>
+                
+                <linearGradient id={`mythicGrad-${card.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#C0C0C0">
+                    <animate attributeName="stop-color" values="#C0C0C0;#00FFFF;#FF00FF;#FFFF00;#0000FF;#C0C0C0" dur="4s" repeatCount="indefinite" />
+                  </stop>
+                  <stop offset="50%" stopColor="#00FFFF">
+                    <animate attributeName="stop-color" values="#00FFFF;#FF00FF;#FFFF00;#0000FF;#C0C0C0;#00FFFF" dur="4s" repeatCount="indefinite" />
+                  </stop>
+                  <stop offset="100%" stopColor="#C0C0C0">
+                    <animate attributeName="stop-color" values="#C0C0C0;#00FFFF;#FF00FF;#FFFF00;#0000FF;#C0C0C0" dur="4s" repeatCount="indefinite" />
+                  </stop>
+                </linearGradient>
+                
+                <filter id={`glow-${card.id}`}>
+                  <feGaussianBlur stdDeviation="2" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+              <rect
+                x="0" y="0" width="100%" height="100%"
+                rx="16" ry="16"
+                fill="none"
+                stroke={card.rarity === 'Legendary' ? `url(#goldGrad-${card.id})` : `url(#mythicGrad-${card.id})`}
+                strokeWidth="8"
+                filter={`url(#glow-${card.id})`}
+                className="opacity-90"
+              />
+            </svg>
+          )}
           {/* Inner card frame */}
           <div className="flex flex-col h-full p-3 bg-black/10">
             {/* Header row */}
@@ -272,19 +307,6 @@ export default function PokemonCard({ card }) {
       <style>{`
         .shadow-golden-glow {
           box-shadow: 0 0 25px rgba(255, 215, 0, 0.4), 0 0 50px rgba(255, 176, 0, 0.2);
-        }
-        
-        .holographic-border-bg {
-          background: linear-gradient(120deg, #e2e8f0, #22d3ee, #d946ef, #eab308, #3b82f6, #e2e8f0);
-          background-size: 400% 400%;
-          animation: moveHoloGradient 6s linear infinite;
-          [mask:linear-gradient(#fff_0_0)_padding-box,linear-gradient(#fff_0_0)] 
-          [mask-composite:exclude];
-        }
-
-        @keyframes moveHoloGradient {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 100% 50%; }
         }
 
         .holographic-shine::after {
