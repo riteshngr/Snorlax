@@ -1,44 +1,90 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Marketplace from "../../pages/PokemonMarketplace";
+import PokemonMarketplace from "../../pages/PokemonMarketplace";
 import Recipes from "../../pages/Recipes";
 import CardPack from "../CardPack";
 import PokemonCard from "../PokemonCard";
+import { useAuth } from "../../context/Store";
+import { useUserData } from "../../context/Store";
 
 export default function DashboardLayout() {
   // Tracks which panel is currently taking up the full screen
   const [activePanel, setActivePanel] = useState("home"); // 'home', 'marketplace', 'inventory', 'recipes'
   const [expandedCard, setExpandedCard] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const [inventory, setInventory] = useState(() => {
-    try {
-      const saved = localStorage.getItem("pokemon-inventory");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Failed to load inventory:", e);
-      return [];
-    }
-  });
-
-  const addCardsToInventory = (newCards) => {
-    setInventory(prev => {
-      const updated = [...prev, ...newCards];
-      localStorage.setItem("pokemon-inventory", JSON.stringify(updated));
-      return updated;
-    });
-  };
+  const { user, logout } = useAuth();
+  const { profile, inventory, addCardsToInventory, spendCredits } = useUserData();
 
   const closePanel = () => setActivePanel("home");
+
+  // Display username from profile, fallback to Firebase displayName
+  const displayName = profile?.username || user?.displayName || "Trainer";
+  const initials = displayName.substring(0, 2).toUpperCase();
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gray-900 text-white">
       
+      {/* ── User Info Bar (top-right) ─────────────────── */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
+        {/* Credits */}
+        {profile && (
+          <div className="flex items-center gap-2 rounded-full border border-amber-500/30 bg-gray-900/80 backdrop-blur-md px-3 py-1.5">
+            <span className="text-sm">🪙</span>
+            <span className="text-xs font-black text-amber-400">
+              {(profile.credits || 0).toLocaleString()}
+            </span>
+          </div>
+        )}
+
+        {/* Gems */}
+        {profile && (
+          <div className="flex items-center gap-2 rounded-full border border-blue-500/30 bg-gray-900/80 backdrop-blur-md px-3 py-1.5">
+            <span className="text-sm">💎</span>
+            <span className="text-xs font-black text-blue-400">
+              {profile.gems || 0}
+            </span>
+          </div>
+        )}
+
+        {/* User avatar + dropdown (click-based) */}
+        <div className="relative">
+          <button
+            onClick={() => setShowUserMenu((v) => !v)}
+            className="flex items-center gap-2 rounded-full border border-purple-500/30 bg-gray-900/80 backdrop-blur-md px-3 py-1.5 cursor-pointer hover:border-purple-400/50 transition-colors"
+          >
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-blue-600 text-[10px] font-bold text-white">
+              {initials}
+            </div>
+            <span className="text-xs font-bold text-gray-300 hidden sm:block">{displayName}</span>
+          </button>
+          
+          {/* Dropdown */}
+          {showUserMenu && (
+            <>
+              {/* Invisible overlay to close on outside click */}
+              <div className="fixed inset-0 z-[70]" onClick={() => setShowUserMenu(false)} />
+              <div className="absolute right-0 top-full mt-1 w-40 rounded-xl border border-gray-700/50 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-[80] animate-in fade-in">
+                <div className="p-2">
+                  <button
+                    onClick={() => { logout(); setShowUserMenu(false); }}
+                    className="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    🚪 Sign Out
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* =========================================
           THE CENTER: GACHA PACK ZONE
       ========================================= */}
       <div className="flex h-full w-full items-center justify-center">
         <div id="gacha-center-wrapper" className="flex h-full w-full items-center justify-center">
-          <CardPack activePanel={activePanel} addCardsToInventory={addCardsToInventory} />
+          <CardPack activePanel={activePanel} addCardsToInventory={addCardsToInventory} spendCredits={spendCredits} userCredits={profile?.credits || 0} />
         </div>
       </div>
 
@@ -69,7 +115,7 @@ export default function DashboardLayout() {
         onClick={() => setActivePanel("inventory")}
         className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-t-xl bg-emerald-600 px-12 py-3 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] z-10"
       >
-        INVENTORY
+        INVENTORY ({inventory.length})
       </button>
 
 
@@ -117,7 +163,7 @@ export default function DashboardLayout() {
               ✕
             </button>
             <div className="flex-1 overflow-hidden">
-              <Marketplace />
+              <PokemonMarketplace />
             </div>
           </motion.div>
         )}
@@ -132,23 +178,36 @@ export default function DashboardLayout() {
             className="absolute inset-0 z-[60] flex flex-col bg-gray-950 p-8"
           >
             <div className="flex items-center justify-between border-b border-gray-800 pb-4">
-              <h2 className="text-4xl font-black text-emerald-500 uppercase tracking-tight">The Vault</h2>
+              <div>
+                <h2 className="text-4xl font-black text-emerald-500 uppercase tracking-tight">The Vault</h2>
+                <p className="text-xs text-gray-500 mt-1">{displayName}'s Collection · {inventory.length} cards</p>
+              </div>
               <button onClick={closePanel} className="text-gray-500 hover:text-white text-3xl transition-colors">✕</button>
             </div>
             <div className="flex-1 overflow-y-auto mt-8 custom-scrollbar">
               {inventory.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-12 gap-x-4 pb-12">
                   {inventory.map((card, idx) => {
+                    // Map Firestore inventory doc fields to PokemonCard's expected shape
+                    const cardForDisplay = {
+                      id: card.pokemonId || card.id,
+                      name: card.name,
+                      image: card.image,
+                      types: card.types || [],
+                      attacks: card.attacks || [],
+                      rarity: card.rarity || "Common",
+                      genus: card.genus || "Unknown Pokémon",
+                    };
                     const isExpanded = expandedCard?.idx === idx;
                     return (
-                      <div key={`${card.id}-${idx}`} className="flex justify-center -mb-20 min-h-[220px]">
+                      <div key={card.docId || `${card.id}-${idx}`} className="flex justify-center -mb-20 min-h-[220px]">
                         {!isExpanded && (
                           <motion.div 
-                            layoutId={`vault-card-${card.id}-${idx}`}
+                            layoutId={`vault-card-${cardForDisplay.id}-${idx}`}
                             className="scale-[0.55] sm:scale-[0.6] origin-top transition-transform hover:scale-[0.65] hover:z-10 cursor-pointer"
-                            onClick={() => setExpandedCard({ card, idx })}
+                            onClick={() => setExpandedCard({ card: cardForDisplay, idx })}
                           >
-                            <PokemonCard card={card} disableFlip={true} />
+                            <PokemonCard card={cardForDisplay} disableFlip={true} />
                           </motion.div>
                         )}
                       </div>

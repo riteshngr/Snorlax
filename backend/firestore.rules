@@ -1,0 +1,38 @@
+// Firestore Security Rules — reference copy
+// Deploy these via Firebase Console → Firestore → Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Users ────────────────────────────────────────
+    match /users/{userId} {
+      // Users can only read/write their own profile
+      allow read:   if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // Inventory subcollection
+      match /inventory/{cardId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // ── Auctions ─────────────────────────────────────
+    match /auctions/{auctionId} {
+      // Anyone logged-in can read auctions
+      allow read: if request.auth != null;
+
+      // Only the seller can create
+      allow create: if request.auth != null
+                    && request.resource.data.sellerId == request.auth.uid;
+
+      // Bids are handled via transactions — allow update for logged-in users
+      allow update: if request.auth != null;
+
+      // Only the seller can cancel (delete)
+      allow delete: if request.auth != null
+                    && resource.data.sellerId == request.auth.uid;
+    }
+  }
+}

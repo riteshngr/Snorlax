@@ -111,11 +111,13 @@ export default function PackOpening({ onReset, activePanel, addCardsToInventory 
     // Wait for the full animation sequence (800ms) plus a small buffer
     await new Promise(r => setTimeout(r, 850));
 
-    // Trigger inventory and reset
-    if (typeof addCardsToInventory === 'function') {
-      addCardsToInventory(cards);
-    } else {
-      console.log("Adding cards to inventory:", cards);
+    // Trigger inventory save and reset
+    try {
+      if (typeof addCardsToInventory === 'function') {
+        await addCardsToInventory(cards);
+      }
+    } catch (err) {
+      console.error("Failed to save cards to inventory:", err);
     }
     onReset();
   };
