@@ -5,7 +5,7 @@ import PackOpening from "./PackOpening";
  * CardPack — A premium booster pack component with metallic gradients
  * and shiny effects.
  */
-export default function CardPack({ activePanel }) {
+export default function CardPack({ activePanel, addCardsToInventory }) {
   const [isOpened, setIsOpened] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
 
@@ -19,7 +19,7 @@ export default function CardPack({ activePanel }) {
   }
 
   if (isOpened) {
-     return <PackOpening onReset={() => setIsOpened(false)} activePanel={activePanel} />;
+     return <PackOpening onReset={() => setIsOpened(false)} activePanel={activePanel} addCardsToInventory={addCardsToInventory} />;
   }
 
   return (

@@ -21,13 +21,16 @@ const RARITY_HINTS = {
  * - Manage the orchestrated Tear -> Fan animation sequence.
  * - Handle card reveal state (flip, hover, selection).
  */
-export default function PackOpening({ onReset, activePanel }) {
+export default function PackOpening({ onReset, activePanel, addCardsToInventory }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('tearing'); // start with tear
   const [revealing, setRevealing] = useState(false);
   const [flippedIndices, setFlippedIndices] = useState(new Set());
   const [selectedIndex, setSelectedIndex] = useState(null);
+
+  // New states for the collection animation
+  const [isCollecting, setIsCollecting] = useState(false);
 
   /**
    * Fetch and generate cards on mount
@@ -68,27 +71,71 @@ export default function PackOpening({ onReset, activePanel }) {
   }, [activePanel]);
 
   const handleCardClick = (index) => {
-    // If not flipped, flip it
-    if (!flippedIndices.has(index)) {
-      setFlippedIndices(prev => new Set([...prev, index]));
+    // If already flipped, just toggle selection
+    if (flippedIndices.has(index)) {
+      setSelectedIndex(prev => (prev === index ? null : index));
+      return;
     }
     
-    // Toggle selection
-    setSelectedIndex(prev => (prev === index ? null : index));
+    // If not flipped, flip it
+    setFlippedIndices(prev => new Set([...prev, index]));
+  };
+
+  /**
+   * Flip all remaining unflipped cards with a slight stagger
+   */
+  const handleGlobalFlip = async () => {
+    if (status !== 'revealed' || isCollecting) return;
+    
+    const unflippedIndices = cards
+      .map((_, i) => i)
+      .filter(i => !flippedIndices.has(i));
+    
+    if (unflippedIndices.length === 0) return;
+
+    // Flip them sequentially for a premium staggered effect
+    for (const index of unflippedIndices) {
+      setFlippedIndices(prev => new Set([...prev, index]));
+      await new Promise(r => setTimeout(r, 100)); // 100ms stagger
+    }
+  };
+
+  /**
+   * Orchestrate the 4-step collection animation
+   */
+  const handleCollectCards = async () => {
+    if (isCollecting) return;
+    setIsCollecting(true);
+    setSelectedIndex(null); // Deselect any card
+
+    // Wait for the full animation sequence (800ms) plus a small buffer
+    await new Promise(r => setTimeout(r, 850));
+
+    // Trigger inventory and reset
+    if (typeof addCardsToInventory === 'function') {
+      addCardsToInventory(cards);
+    } else {
+      console.log("Adding cards to inventory:", cards);
+    }
+    onReset();
   };
 
   const rotations = ["-rotate-12", "-rotate-6", "rotate-0", "rotate-6", "rotate-12"];
+  const degrees = [-12, -6, 0, 6, 12];
 
   return (
     <div 
-      onClick={() => setSelectedIndex(null)}
+      onClick={handleGlobalFlip}
       className="relative flex flex-col items-center justify-center w-full min-h-[500px]"
     >
       
       {/* ── 1. Recovery Option (Reset) ─────────────────── */}
       {status === 'revealed' && !loading && (
         <button
-          onClick={onReset}
+          onClick={(e) => {
+            e.stopPropagation();
+            onReset();
+          }}
           className="absolute -top-16 px-6 py-2 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 transition-colors text-xs font-bold uppercase tracking-widest text-white/60 z-10"
         >
           ← Open Another Pack
@@ -121,6 +168,7 @@ export default function PackOpening({ onReset, activePanel }) {
                 <div
                   key={`${card.id}-${index}`}
                   onClick={(e) => {
+                    if (isCollecting) return;
                     e.stopPropagation();
                     handleCardClick(index);
                   }}
@@ -132,8 +180,13 @@ export default function PackOpening({ onReset, activePanel }) {
                       : `${rotations[index]} hover:translate-y-[-20px] hover:z-[45] hover:scale-105 z-[30]`
                     }
                     ${isDimmed ? "opacity-40 scale-90 blur-[1px]" : "opacity-100"}
+                    ${isCollecting ? "collecting-card" : ""}
                   `}
-                  style={{ transitionDelay: revealing ? `${index * 120}ms` : '0ms' }}
+                  style={{ 
+                    transitionDelay: revealing && !isCollecting ? `${index * 120}ms` : '0ms',
+                    "--initial-rotate": `${degrees[index]}deg`,
+                    "--stack-offset": `${(2 - index) * 128}px`
+                  }}
                 >
                   {/* Card Flip Inner */}
                   <div className={`
@@ -183,7 +236,26 @@ export default function PackOpening({ onReset, activePanel }) {
         </div>
       )}
 
-      {/* ── 4. Loading State ───────────────────────────── */}
+      {/* ── 4. Collect Cards Action ─────────────────── */}
+      {flippedIndices.size === cards.length && cards.length > 0 && !isCollecting && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-5 duration-700">
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCollectCards();
+            }}
+            className="group cursor-pointer flex flex-col items-center"
+          >
+            <span className="text-emerald-50/90 font-black text-sm tracking-[0.4em] uppercase transition-all duration-300 group-hover:text-white group-hover:scale-110 animate-pulse-slow active:scale-95 text-glow-pulse">
+              Add to Inventory
+            </span>
+            {/* Subtle interactive underline */}
+            <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent transition-all duration-500 mt-1" />
+          </div>
+        </div>
+      )}
+
+      {/* ── 5. Loading State ───────────────────────────── */}
       {loading && status === 'tearing' && (
         <div className="mt-20 flex items-center gap-3 text-white/40 animate-pulse">
            <div className="w-2 h-2 bg-indigo-500 rounded-full" />
@@ -206,6 +278,73 @@ export default function PackOpening({ onReset, activePanel }) {
           opacity: 0.5;
           filter: brightness(0.7) blur(1px);
           transform: scale(0.95);
+        }
+
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+
+        .animate-in {
+          animation-fill-mode: forwards;
+        }
+        .fade-in {
+          animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translate(-50%, 20px); }
+          to { transform: translate(-50%, 0); }
+        }
+
+        .text-glow-pulse {
+          animation: textGlowPulse 2.5s infinite ease-in-out;
+        }
+
+        @keyframes textGlowPulse {
+          0%, 100% { 
+            opacity: 0.7;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0), 0 0 20px rgba(16, 185, 129, 0);
+          }
+          50% { 
+            opacity: 1;
+            text-shadow: 0 0 15px rgba(16, 185, 129, 0.5), 0 0 30px rgba(16, 185, 129, 0.2);
+          }
+        }
+
+        .collecting-card {
+          animation: collectSequence 0.8s ease-in-out forwards !important;
+          pointer-events: none;
+          z-index: 100 !important;
+        }
+
+        @keyframes collectSequence {
+          0% {
+            transform: scale(1) rotate(var(--initial-rotate)) translateX(0) translateY(0);
+            opacity: 1;
+          }
+          15% {
+            /* Step 1: Shrink */
+            transform: scale(0.9) rotate(var(--initial-rotate)) translateX(0) translateY(0);
+            opacity: 1;
+          }
+          45% {
+            /* Step 2: Stack at center */
+            transform: scale(0.9) rotate(0deg) translateX(var(--stack-offset)) translateY(0);
+            opacity: 1;
+          }
+          75% {
+            /* Step 3: Slide down toward inventory */
+            transform: scale(0.9) rotate(0deg) translateX(var(--stack-offset)) translateY(300px);
+            opacity: 0.7;
+          }
+          100% {
+            /* Step 4: Fade out */
+            transform: scale(0.9) rotate(0deg) translateX(var(--stack-offset)) translateY(600px);
+            opacity: 0;
+          }
         }
       `}</style>
     </div>

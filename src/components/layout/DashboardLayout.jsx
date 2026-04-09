@@ -3,10 +3,29 @@ import { motion, AnimatePresence } from "framer-motion";
 import Marketplace from "../../pages/PokemonMarketplace";
 import Recipes from "../../pages/Recipes";
 import CardPack from "../CardPack";
+import PokemonCard from "../PokemonCard";
 
 export default function DashboardLayout() {
   // Tracks which panel is currently taking up the full screen
   const [activePanel, setActivePanel] = useState("home"); // 'home', 'marketplace', 'inventory', 'recipes'
+
+  const [inventory, setInventory] = useState(() => {
+    try {
+      const saved = localStorage.getItem("pokemon-inventory");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to load inventory:", e);
+      return [];
+    }
+  });
+
+  const addCardsToInventory = (newCards) => {
+    setInventory(prev => {
+      const updated = [...prev, ...newCards];
+      localStorage.setItem("pokemon-inventory", JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const closePanel = () => setActivePanel("home");
 
@@ -18,7 +37,7 @@ export default function DashboardLayout() {
       ========================================= */}
       <div className="flex h-full w-full items-center justify-center">
         <div id="gacha-center-wrapper" className="flex h-full w-full items-center justify-center">
-          <CardPack activePanel={activePanel} />
+          <CardPack activePanel={activePanel} addCardsToInventory={addCardsToInventory} />
         </div>
       </div>
 
@@ -115,10 +134,54 @@ export default function DashboardLayout() {
               <h2 className="text-4xl font-black text-emerald-500 uppercase tracking-tight">The Vault</h2>
               <button onClick={closePanel} className="text-gray-500 hover:text-white text-3xl transition-colors">✕</button>
             </div>
-            <div className="flex h-full w-full items-center justify-center">
-              {/* Dev drops Inventory Component here */}
-              <span className="text-gray-600">[ Inventory Grid Goes Here ]</span>
+            <div className="flex-1 overflow-y-auto mt-8 custom-scrollbar">
+              {inventory.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-12 gap-x-4 pb-12">
+                  {inventory.map((card, idx) => (
+                    <div key={`${card.id}-${idx}`} className="flex justify-center -mb-20">
+                      <div className="scale-[0.55] sm:scale-[0.6] origin-top transition-transform hover:scale-[0.65] hover:z-10">
+                        <PokemonCard card={card} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full opacity-20 py-20">
+                   <div className="w-24 h-24 mb-6 relative">
+                      <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
+                      <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-500">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" />
+                        <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="4" />
+                        <circle cx="50" cy="50" r="15" fill="none" stroke="currentColor" strokeWidth="4" />
+                        <circle cx="50" cy="50" r="8" fill="currentColor" />
+                      </svg>
+                   </div>
+                   <p className="text-emerald-500 font-black text-2xl tracking-[0.3em] uppercase italic">
+                      Empty Vault
+                   </p>
+                   <p className="text-white/40 text-xs mt-4 tracking-widest uppercase font-bold">
+                      Open packs to claim your cards
+                   </p>
+                </div>
+              )}
             </div>
+
+            <style>{`
+              .custom-scrollbar::-webkit-scrollbar {
+                width: 6px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 10px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: rgba(16, 185, 129, 0.3);
+                border-radius: 10px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(16, 185, 129, 0.5);
+              }
+            `}</style>
           </motion.div>
         )}
 
