@@ -1,9 +1,11 @@
 import PokeballSplash from "./components/gacha/PokeballSplash";
-import DashboardLayout from "./components/layout/DashboardLayout"; // Import the new layout
+import DashboardLayout from "./components/layout/DashboardLayout";
+import ClickSparkEffect from "./components/effects/ClickSparkEffect";
 
 function App() {
   return (
-    <div className="bg-gray-900 min-h-screen text-white">
+    <div className="bg-gray-900 min-h-screen text-white overflow-hidden">
+      <ClickSparkEffect />
       
       {/* The cinematic reveal */}
       <PokeballSplash>
