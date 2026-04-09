@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Marketplace from "../../pages/Marketplace";
+import Recipes from "../../pages/Recipes";
 import CardPack from "../CardPack";
 
 export default function DashboardLayout() {
@@ -64,15 +65,17 @@ export default function DashboardLayout() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="absolute inset-0 z-[60] flex flex-col bg-gray-950 p-8"
+            className="absolute inset-0 z-[60] flex flex-col bg-[#070412]"
           >
-            <div className="flex items-center justify-between border-b border-gray-800 pb-4">
-              <h2 className="text-4xl font-black text-purple-500 uppercase tracking-tight">Crafting Recipes</h2>
-              <button onClick={closePanel} className="text-gray-500 hover:text-white text-3xl transition-colors">✕</button>
-            </div>
-            <div className="flex h-full w-full items-center justify-center">
-              {/* Dev drops Recipe Component here */}
-              <span className="text-gray-600">[ Recipes Component Goes Here ]</span>
+            {/* Close button floating over the recipes */}
+            <button 
+              onClick={closePanel} 
+              className="absolute right-4 top-4 z-[60] flex h-9 w-9 items-center justify-center rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 text-gray-400 hover:text-white hover:bg-gray-700/80 text-lg transition-all hover:scale-110"
+            >
+              ✕
+            </button>
+            <div className="flex-1 overflow-hidden">
+              <Recipes />
             </div>
           </motion.div>
         )}
