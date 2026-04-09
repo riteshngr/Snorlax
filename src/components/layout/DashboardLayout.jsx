@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Marketplace from "../../pages/Marketplace";
+import CardPack from "../CardPack";
 
 export default function DashboardLayout() {
   // Tracks which panel is currently taking up the full screen
@@ -15,10 +16,8 @@ export default function DashboardLayout() {
           THE CENTER: GACHA PACK ZONE
       ========================================= */}
       <div className="flex h-full w-full items-center justify-center">
-        {/* Placeholder for your Gacha Master */}
-        <div className="flex h-96 w-72 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-700 bg-gray-800/30">
-          <span className="text-lg font-bold text-gray-400">Gacha Pack Area</span>
-          <span className="text-sm text-gray-600">(Drop component here)</span>
+        <div id="gacha-center-wrapper" className="flex h-full w-full items-center justify-center">
+          <CardPack activePanel={activePanel} />
         </div>
       </div>
 
@@ -29,7 +28,7 @@ export default function DashboardLayout() {
       {/* LEFT TAB: Recipes */}
       <button 
         onClick={() => setActivePanel("recipes")}
-        className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-xl bg-purple-600 px-3 py-10 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-purple-500 hover:shadow-[0_0_20px_rgba(147,51,234,0.5)]"
+        className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-xl bg-purple-600 px-3 py-10 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-purple-500 hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] z-10"
         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
       >
         RECIPES
@@ -38,7 +37,7 @@ export default function DashboardLayout() {
       {/* RIGHT TAB: Marketplace */}
       <button 
         onClick={() => setActivePanel("marketplace")}
-        className="absolute right-0 top-1/2 -translate-y-1/2 rounded-l-xl bg-blue-600 px-3 py-10 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.5)]"
+        className="absolute right-0 top-1/2 -translate-y-1/2 rounded-l-xl bg-blue-600 px-3 py-10 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] z-10"
         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
       >
         MARKET
@@ -47,7 +46,7 @@ export default function DashboardLayout() {
       {/* BOTTOM TAB: Inventory */}
       <button 
         onClick={() => setActivePanel("inventory")}
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-t-xl bg-emerald-600 px-12 py-3 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.5)]"
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-t-xl bg-emerald-600 px-12 py-3 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] z-10"
       >
         INVENTORY
       </button>
@@ -65,7 +64,7 @@ export default function DashboardLayout() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="absolute inset-0 z-50 flex flex-col bg-gray-950 p-8"
+            className="absolute inset-0 z-[60] flex flex-col bg-gray-950 p-8"
           >
             <div className="flex items-center justify-between border-b border-gray-800 pb-4">
               <h2 className="text-4xl font-black text-purple-500 uppercase tracking-tight">Crafting Recipes</h2>
@@ -85,7 +84,7 @@ export default function DashboardLayout() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="absolute inset-0 z-50 flex flex-col bg-[#070412]"
+            className="absolute inset-0 z-[60] flex flex-col bg-[#070412]"
           >
             {/* Close button floating over the marketplace */}
             <button 
@@ -107,7 +106,7 @@ export default function DashboardLayout() {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="absolute inset-0 z-50 flex flex-col bg-gray-950 p-8"
+            className="absolute inset-0 z-[60] flex flex-col bg-gray-950 p-8"
           >
             <div className="flex items-center justify-between border-b border-gray-800 pb-4">
               <h2 className="text-4xl font-black text-emerald-500 uppercase tracking-tight">The Vault</h2>

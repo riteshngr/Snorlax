@@ -1,16 +1,43 @@
-# React + Vite
+# Snorlax Gacha & Dashboard Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to the Snorlax project! This application is a Pokemon-themed Gacha system integrated into a high-end dashboard. This README provides a map of the codebase for developers and contributors.
 
-Currently, two official plugins are available:
+## 🚀 Technology Stack
+- **Frontend**: React + Vite
+- **Styling**: Tailwind CSS v4
+- **Animations**: Framer Motion
+- **Data Source**: PokeAPI
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 📂 Project Structure: What is Where?
 
-## React Compiler
+### 🏗️ Core & Entry Points
+- **[main.jsx](src/main.jsx)**: The starting point of the application. It mounts the React tree to the HTML root.
+- **[App.jsx](src/App.jsx)**: The central orchestrator. It controls the cinematic flow, starting with the Pokeball Splash and then revealing the Dashboard.
+- **[index.css](src/index.css)**: Global styles, design tokens, and custom keyframe animations (like the pack tearing effect).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🖥️ Layout & Navigation
+- **[DashboardLayout.jsx](src/components/layout/DashboardLayout.jsx)**: The main UI structure. It contains the navigation tabs (Recipes, Market, Inventory) and the logic for sliding panels. It also hosts the central Gacha zone.
 
-## Expanding the ESLint configuration
+### 🃏 Gacha & Card System
+- **[PokeballSplash.jsx](src/components/gacha/PokeballSplash.jsx)**: The cinematic entrance. Handles the Pokeball opening animation and the initial app reveal.
+- **[CardPack.jsx](src/components/CardPack.jsx)**: The interactive Pokemon pack. Includes the metallic design, shaking animation, and "Open" logic.
+- **[PackOpening.jsx](src/components/PackOpening.jsx)**: The logic hub for gacha reveals. It fetches 5 random Pokemon, runs the "tear" animation, and fans out the cards. It also manages the interactive stack (z-index) of cards.
+- **[PokemonCard.jsx](src/components/PokemonCard.jsx)**: The UI for individual cards. Features a 3D flip effect, type-based gradients, and rarity badges.
+- **[AttackRow.jsx](src/components/AttackRow.jsx)**: A small sub-component for rendering attack stats within a card.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 🛒 Features & Pages
+- **[Marketplace.jsx](src/pages/Marketplace.jsx)**: A complex trading UI with filters, search, and featured listings.
+
+### ⚙️ Utilities & Services
+- **[pokemon.js](src/services/pokemon.js)**: The service layer that communicates with PokeAPI to fetch random monster data.
+- **[cardGenerator.js](src/utils/cardGenerator.js)**: The algorithm that determines card stats, moves, and rarity based on the Pokemon's base stats.
+- **[typeColors.js](src/utils/typeColors.js)**: Central repository for all type-specific colors, gradients, and glow effects (Fire, Water, Dragon, etc.).
+
+## 🛠️ Key Logic Notations
+- **Z-Index Hierarchy**: 
+    - Panels/Modals: `z-[60]`
+    - Active Card: `z-[50]`
+    - Regular Cards: `z-[30]`
+    - Dashboard Tabs: `z-[10]`
+- **State Flow**: The `DashboardLayout` passes its navigation state to the `PackOpening` component to ensure the card stack resets whenever a user switches tabs.
+
