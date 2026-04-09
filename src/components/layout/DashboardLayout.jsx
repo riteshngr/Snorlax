@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Marketplace from "../../pages/Marketplace";
+import Marketplace from "../../pages/PokemonMarketplace";
 import Recipes from "../../pages/Recipes";
 import CardPack from "../CardPack";
 
