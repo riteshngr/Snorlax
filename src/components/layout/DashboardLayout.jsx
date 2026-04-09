@@ -8,6 +8,7 @@ import PokemonCard from "../PokemonCard";
 export default function DashboardLayout() {
   // Tracks which panel is currently taking up the full screen
   const [activePanel, setActivePanel] = useState("home"); // 'home', 'marketplace', 'inventory', 'recipes'
+  const [expandedCard, setExpandedCard] = useState(null);
 
   const [inventory, setInventory] = useState(() => {
     try {
@@ -137,13 +138,22 @@ export default function DashboardLayout() {
             <div className="flex-1 overflow-y-auto mt-8 custom-scrollbar">
               {inventory.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-12 gap-x-4 pb-12">
-                  {inventory.map((card, idx) => (
-                    <div key={`${card.id}-${idx}`} className="flex justify-center -mb-20">
-                      <div className="scale-[0.55] sm:scale-[0.6] origin-top transition-transform hover:scale-[0.65] hover:z-10">
-                        <PokemonCard card={card} />
+                  {inventory.map((card, idx) => {
+                    const isExpanded = expandedCard?.idx === idx;
+                    return (
+                      <div key={`${card.id}-${idx}`} className="flex justify-center -mb-20 min-h-[220px]">
+                        {!isExpanded && (
+                          <motion.div 
+                            layoutId={`vault-card-${card.id}-${idx}`}
+                            className="scale-[0.55] sm:scale-[0.6] origin-top transition-transform hover:scale-[0.65] hover:z-10 cursor-pointer"
+                            onClick={() => setExpandedCard({ card, idx })}
+                          >
+                            <PokemonCard card={card} disableFlip={true} />
+                          </motion.div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full opacity-20 py-20">
@@ -182,6 +192,35 @@ export default function DashboardLayout() {
                 background: rgba(16, 185, 129, 0.5);
               }
             `}</style>
+            
+            {/* The Expanded Card Modal */}
+            <AnimatePresence>
+              {expandedCard && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                  onClick={() => setExpandedCard(null)}
+                >
+                  <motion.div
+                    layoutId={`vault-card-${expandedCard.card.id}-${expandedCard.idx}`}
+                    className="relative z-10 scale-100 sm:scale-125 md:scale-150"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <PokemonCard card={expandedCard.card} disableFlip={true} />
+                    <button
+                      onClick={() => setExpandedCard(null)}
+                      className="absolute -top-6 -right-6 flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 border-2 border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors shadow-xl"
+                    >
+                      ✕
+                    </button>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
           </motion.div>
         )}
 

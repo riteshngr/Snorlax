@@ -117,7 +117,7 @@ const TypeIcon = ({ type, className = "w-4 h-4" }) => {
   );
 };
 
-export default function PokemonCard({ card }) {
+export default function PokemonCard({ card, disableFlip, onClick }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   const primaryType = card.types[0] || "normal";
@@ -126,10 +126,15 @@ export default function PokemonCard({ card }) {
   const rarityStyle = RARITY_STYLES[card.rarity] || RARITY_STYLES.Common;
   const glowColor = TYPE_GLOWS[primaryType] || TYPE_GLOWS.normal;
 
+  const handleClick = (e) => {
+    if (onClick) onClick(e);
+    if (!disableFlip) setIsFlipped(!isFlipped);
+  };
+
   return (
     <div
-      className="group perspective-[1000px] cursor-pointer"
-      onClick={() => setIsFlipped(!isFlipped)}
+      className={`group perspective-[1000px] ${(!disableFlip || onClick) ? 'cursor-pointer' : ''}`}
+      onClick={handleClick}
     >
       <div
         className={`
