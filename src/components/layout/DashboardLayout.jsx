@@ -24,7 +24,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gray-900 text-white">
-      
+
       {/* ── User Info Bar (top-right) ─────────────────── */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
         {/* Credits */}
@@ -58,7 +58,7 @@ export default function DashboardLayout() {
             </div>
             <span className="text-xs font-bold text-gray-300 hidden sm:block">{displayName}</span>
           </button>
-          
+
           {/* Dropdown */}
           {showUserMenu && (
             <>
@@ -80,9 +80,23 @@ export default function DashboardLayout() {
       </div>
 
       {/* =========================================
+          BACKGROUND VIDEO
+      ========================================= */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover z-0"
+        src="/bg.mp4"
+      />
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-black/50 z-[1]" />
+
+      {/* =========================================
           THE CENTER: GACHA PACK ZONE
       ========================================= */}
-      <div className="flex h-full w-full items-center justify-center">
+      <div className="relative z-[2] flex h-full w-full items-center justify-center">
         <div id="gacha-center-wrapper" className="flex h-full w-full items-center justify-center">
           <CardPack activePanel={activePanel} addCardsToInventory={addCardsToInventory} spendCredits={spendCredits} userCredits={profile?.credits || 0} />
         </div>
@@ -91,29 +105,29 @@ export default function DashboardLayout() {
       {/* =========================================
           THE TABS (Triggers to open the panels)
       ========================================= */}
-      
+
       {/* LEFT TAB: Recipes */}
-      <button 
+      <button
         onClick={() => setActivePanel("recipes")}
-        className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-xl bg-purple-600 px-3 py-10 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-purple-500 hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] z-10"
+        className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-xl bg-blue-900/60 backdrop-blur-md border border-blue-400/20 px-3 py-10 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-blue-800/75 hover:shadow-[0_0_20px_rgba(37,99,235,0.3)] z-10"
         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
       >
         RECIPES
       </button>
 
       {/* RIGHT TAB: Marketplace */}
-      <button 
+      <button
         onClick={() => setActivePanel("marketplace")}
-        className="absolute right-0 top-1/2 -translate-y-1/2 rounded-l-xl bg-blue-600 px-3 py-10 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] z-10"
+        className="absolute right-0 top-1/2 -translate-y-1/2 rounded-l-xl bg-blue-900/60 backdrop-blur-md border border-blue-400/20 px-3 py-10 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-blue-800/75 hover:shadow-[0_0_20px_rgba(37,99,235,0.3)] z-10"
         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
       >
-        MARKET
+        <span style={{ display: 'block', transform: 'rotate(180deg)' }}>MARKET</span>
       </button>
 
       {/* BOTTOM TAB: Inventory */}
-      <button 
+      <button
         onClick={() => setActivePanel("inventory")}
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-t-xl bg-emerald-600 px-12 py-3 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] z-10"
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-t-xl bg-amber-900/60 backdrop-blur-md border border-amber-400/20 px-12 py-3 font-bold tracking-widest text-white transition-all hover:scale-105 hover:bg-amber-800/75 hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] z-10"
       >
         INVENTORY ({inventory.length})
       </button>
@@ -123,7 +137,7 @@ export default function DashboardLayout() {
           THE SLIDING FULL-SCREEN PANELS
       ========================================= */}
       <AnimatePresence>
-        
+
         {/* RECIPES PANEL (Slides from Left -> Right) */}
         {activePanel === "recipes" && (
           <motion.div
@@ -133,12 +147,12 @@ export default function DashboardLayout() {
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
             className="absolute inset-0 z-[60] flex flex-col bg-[#070412]"
           >
-            {/* Close button floating over the recipes */}
-            <button 
-              onClick={closePanel} 
-              className="absolute right-4 top-4 z-[60] flex h-9 w-9 items-center justify-center rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 text-gray-400 hover:text-white hover:bg-gray-700/80 text-lg transition-all hover:scale-110"
+            {/* Back button floating over the recipes */}
+            <button
+              onClick={closePanel}
+              className="absolute right-4 top-4 z-[60] flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 px-4 py-2 text-sm font-bold text-white shadow-[0_0_15px_rgba(147,51,234,0.4)] transition-all hover:from-purple-500 hover:to-purple-400 hover:shadow-[0_0_25px_rgba(147,51,234,0.6)] hover:scale-105 active:scale-95 backdrop-blur-sm"
             >
-              ✕
+              ← Back
             </button>
             <div className="flex-1 overflow-hidden">
               <Recipes />
@@ -155,12 +169,12 @@ export default function DashboardLayout() {
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
             className="absolute inset-0 z-[60] flex flex-col bg-[#070412]"
           >
-            {/* Close button floating over the marketplace */}
-            <button 
-              onClick={closePanel} 
-              className="absolute left-4 top-4 z-[60] flex h-9 w-9 items-center justify-center rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 text-gray-400 hover:text-white hover:bg-gray-700/80 text-lg transition-all hover:scale-110"
+            {/* Back button floating over the marketplace */}
+            <button
+              onClick={closePanel}
+              className="absolute right-4 top-4 z-[60] flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 px-4 py-2 text-sm font-bold text-white shadow-[0_0_15px_rgba(147,51,234,0.4)] transition-all hover:from-purple-500 hover:to-purple-400 hover:shadow-[0_0_25px_rgba(147,51,234,0.6)] hover:scale-105 active:scale-95 backdrop-blur-sm"
             >
-              ✕
+              ← Back
             </button>
             <div className="flex-1 overflow-hidden">
               <PokemonMarketplace />
@@ -182,7 +196,12 @@ export default function DashboardLayout() {
                 <h2 className="text-4xl font-black text-emerald-500 uppercase tracking-tight">The Vault</h2>
                 <p className="text-xs text-gray-500 mt-1">{displayName}'s Collection · {inventory.length} cards</p>
               </div>
-              <button onClick={closePanel} className="text-gray-500 hover:text-white text-3xl transition-colors">✕</button>
+              <button
+                onClick={closePanel}
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 px-4 py-2 text-sm font-bold text-white shadow-[0_0_15px_rgba(147,51,234,0.4)] transition-all hover:from-purple-500 hover:to-purple-400 hover:shadow-[0_0_25px_rgba(147,51,234,0.6)] hover:scale-105 active:scale-95"
+              >
+                ← Back
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto mt-8 custom-scrollbar">
               {inventory.length > 0 ? (
@@ -202,7 +221,7 @@ export default function DashboardLayout() {
                     return (
                       <div key={card.docId || `${card.id}-${idx}`} className="flex justify-center -mb-20 min-h-[220px]">
                         {!isExpanded && (
-                          <motion.div 
+                          <motion.div
                             layoutId={`vault-card-${cardForDisplay.id}-${idx}`}
                             className="scale-[0.55] sm:scale-[0.6] origin-top transition-transform hover:scale-[0.65] hover:z-10 cursor-pointer"
                             onClick={() => setExpandedCard({ card: cardForDisplay, idx })}
@@ -216,21 +235,21 @@ export default function DashboardLayout() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full opacity-20 py-20">
-                   <div className="w-24 h-24 mb-6 relative">
-                      <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
-                      <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-500">
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" />
-                        <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="4" />
-                        <circle cx="50" cy="50" r="15" fill="none" stroke="currentColor" strokeWidth="4" />
-                        <circle cx="50" cy="50" r="8" fill="currentColor" />
-                      </svg>
-                   </div>
-                   <p className="text-emerald-500 font-black text-2xl tracking-[0.3em] uppercase italic">
-                      Empty Vault
-                   </p>
-                   <p className="text-white/40 text-xs mt-4 tracking-widest uppercase font-bold">
-                      Open packs to claim your cards
-                   </p>
+                  <div className="w-24 h-24 mb-6 relative">
+                    <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
+                    <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-500">
+                      <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" />
+                      <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="4" />
+                      <circle cx="50" cy="50" r="15" fill="none" stroke="currentColor" strokeWidth="4" />
+                      <circle cx="50" cy="50" r="8" fill="currentColor" />
+                    </svg>
+                  </div>
+                  <p className="text-emerald-500 font-black text-2xl tracking-[0.3em] uppercase italic">
+                    Empty Vault
+                  </p>
+                  <p className="text-white/40 text-xs mt-4 tracking-widest uppercase font-bold">
+                    Open packs to claim your cards
+                  </p>
                 </div>
               )}
             </div>
@@ -251,7 +270,7 @@ export default function DashboardLayout() {
                 background: rgba(16, 185, 129, 0.5);
               }
             `}</style>
-            
+
             {/* The Expanded Card Modal */}
             <AnimatePresence>
               {expandedCard && (

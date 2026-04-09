@@ -47,12 +47,12 @@ export default function CardPack({ activePanel, addCardsToInventory, spendCredit
         onClick={handlePackClick}
         className={`
           relative w-56 h-80 rounded-xl overflow-hidden shadow-2xl
-          transition-all duration-300 cursor-pointer group
+          transition-all duration-300 cursor-pointer group backdrop-blur-md
           ${isShaking ? 'animate-[shake_0.2s_infinite]' : 'hover:scale-105 hover:-translate-y-2'}
         `}
       >
         {/* Metallic Base Layer */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-700 via-purple-600 to-indigo-800" />
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/60 via-purple-600/60 to-indigo-800/60" />
         
         {/* Shiny "Glint" Sweep */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[200%] group-hover:animate-[glint_1.5s_infinite] pointer-events-none" />

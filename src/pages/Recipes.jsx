@@ -467,7 +467,7 @@ function StoneCard({ stone, onClick, index }) {
       exit={{ opacity: 0, y: -20 }}
       transition={{ type: "spring", bounce: 0.3, delay: index * 0.05 }}
       whileHover={{ y: -6 }}
-      className={`group relative cursor-pointer overflow-hidden rounded-xl border ${stone.borderColor} bg-[#0d0a1a] transition-shadow duration-300`}
+      className={`group relative cursor-pointer overflow-hidden rounded-xl border ${stone.borderColor} bg-[#0d0a1a]/60 backdrop-blur-md transition-shadow duration-300`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
@@ -610,10 +610,21 @@ export default function Recipes() {
   );
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-[#070412]">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#070412]">
+
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover z-0"
+        src="/bg.mp4"
+      />
+      <div className="absolute inset-0 bg-black/60 z-[1]" />
 
       {/* ═══ TOP BAR ═══ */}
-      <div className="flex items-center justify-between border-b border-gray-800/50 bg-[#0a0716]/80 px-6 py-3 backdrop-blur-md">
+      <div className="relative z-[2] flex items-center justify-between border-b border-gray-800/50 bg-[#0a0716]/80 px-6 py-3 backdrop-blur-md">
         {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 text-lg shadow-[0_0_15px_rgba(147,51,234,0.4)]">
@@ -647,20 +658,18 @@ export default function Recipes() {
           </div>
         </div>
 
-        {/* User Avatar */}
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-pink-600 text-sm font-bold text-white cursor-pointer transition-transform hover:scale-110">
-          ME
-        </div>
+        {/* Spacer for top-right back button */}
+        <div className="w-9" />
       </div>
 
       {/* Rainbow bar */}
-      <div className="h-0.5 w-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500" />
+      <div className="relative z-[2] h-0.5 w-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500" />
 
       {/* ═══ SCROLLABLE CONTENT ═══ */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-8 py-6 custom-scrollbar">
+      <div className="relative z-[2] flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-8 py-6 custom-scrollbar">
 
         {/* ═══ HERO SECTION ═══ */}
-        <div className="relative mb-8 overflow-hidden rounded-2xl border border-purple-500/20 bg-gradient-to-r from-[#0a0615] via-[#120826] to-[#0a0615]">
+        <div className="relative mb-8 overflow-hidden rounded-2xl border border-purple-500/20 bg-gradient-to-r from-[#0a0615]/60 via-[#120826]/60 to-[#0a0615]/60 backdrop-blur-md">
           {/* Rainbow accent bar */}
           <div className="h-1 w-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500" />
 
@@ -672,27 +681,6 @@ export default function Recipes() {
             </div>
 
             <div className="relative z-10 flex flex-col items-center text-center">
-              {/* Floating stones */}
-              <div className="flex gap-3 mb-4">
-                {["🔥", "💧", "⚡", "🍃", "🌙"].map((emoji, i) => (
-                  <motion.span
-                    key={i}
-                    className="text-2xl"
-                    animate={{
-                      y: [0, -8, 0],
-                      rotate: [0, 10, -10, 0],
-                    }}
-                    transition={{
-                      duration: 2 + i * 0.3,
-                      repeat: Infinity,
-                      delay: i * 0.2,
-                    }}
-                  >
-                    {emoji}
-                  </motion.span>
-                ))}
-              </div>
-
               <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 tracking-tight mb-2">
                 Evolution Stone Recipes
               </h2>
@@ -725,7 +713,7 @@ export default function Recipes() {
                 Browse Stones
               </h2>
               <p className="mt-1 text-sm text-gray-500">
-                Showing <span className="font-bold text-purple-400">{filteredStones.length}</span> stones
+                Showing <span className="font-bold text-blue-400">{filteredStones.length}</span> stones
               </p>
             </div>
 
@@ -750,13 +738,12 @@ export default function Recipes() {
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${
-                  activeFilter === filter
-                    ? "bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)]"
-                    : "border border-gray-700/50 bg-gray-900/40 text-gray-400 hover:border-gray-600 hover:text-white"
-                }`}
+                className={`flex items-center justify-center rounded-full px-6 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${activeFilter === filter
+                  ? "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+                  : "border border-gray-700/50 bg-gray-900/40 text-gray-400 hover:border-gray-600 hover:text-white"
+                  }`}
               >
-                <span>{FILTER_ICONS[filter]}</span> {filter}
+                {filter}
               </button>
             ))}
           </div>

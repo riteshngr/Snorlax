@@ -9,7 +9,7 @@ import { useAuth, useUserData } from "../context/Store";
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
 const TYPE_FILTER_ICONS = {
-  "All Types": "🎴", fire: "🔥", water: "💧", grass: "🌿", electric: "⚡",
+  "All Types": "💎", fire: "🔥", water: "💧", grass: "🌿", electric: "⚡",
   psychic: "🔮", ice: "❄️", dragon: "🐉", dark: "🌑", fairy: "✨",
   fighting: "🥊", poison: "☠️", ground: "🏜️", flying: "🕊️", bug: "🐛",
   rock: "🪨", ghost: "👻", steel: "⚙️", normal: "⭐",
@@ -30,7 +30,7 @@ function FeaturedAuctionHero({ auction, onBid }) {
   const card = auction.cardData || {};
 
   return (
-    <div className="relative mb-8 overflow-hidden rounded-2xl border border-purple-500/20 bg-gradient-to-r from-[#0a0615] via-[#120826] to-[#0a0615]">
+    <div className="relative mb-8 overflow-hidden rounded-2xl border border-purple-500/20 bg-gradient-to-r from-[#0a0615]/60 via-[#120826]/60 to-[#0a0615]/60 backdrop-blur-md">
       {/* Rainbow accent bar */}
       <div className="h-1 w-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500" />
 
@@ -158,7 +158,7 @@ export default function PokemonMarketplace() {
     if (auctions.length === 0) return null;
     return auctions.reduce((best, a) =>
       (a.currentBid || 0) > (best.currentBid || 0) ? a : best
-    , auctions[0]);
+      , auctions[0]);
   }, [auctions]);
 
   // Filtered and sorted auctions
@@ -212,10 +212,21 @@ export default function PokemonMarketplace() {
   const userGems = profile?.gems || 0;
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-[#070412]">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#070412]">
+
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover z-0"
+        src="/bg.mp4"
+      />
+      <div className="absolute inset-0 bg-black/60 z-[1]" />
 
       {/* ═══ TOP BAR ═══ */}
-      <div className="flex items-center justify-between border-b border-gray-800/50 bg-[#0a0716]/80 px-6 py-3 backdrop-blur-md">
+      <div className="relative z-[2] flex items-center justify-between border-b border-gray-800/50 bg-[#0a0716]/80 px-6 py-3 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 text-lg font-black text-white shadow-[0_0_15px_rgba(147,51,234,0.4)]">V</div>
           <div>
@@ -237,15 +248,14 @@ export default function PokemonMarketplace() {
             <p className="flex items-center gap-1 text-sm font-black text-blue-400">💎 {userGems}</p>
           </div>
         </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-sm font-bold text-white cursor-pointer transition-transform hover:scale-110">
-          {displayName.substring(0, 2).toUpperCase()}
-        </div>
+        {/* Spacer for top-right back button */}
+        <div className="w-9" />
       </div>
 
-      <div className="h-0.5 w-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500" />
+      <div className="relative z-[2] h-0.5 w-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500" />
 
       {/* ═══ SCROLLABLE CONTENT ═══ */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-8 py-6 custom-scrollbar">
+      <div className="relative z-[2] flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-8 py-6 custom-scrollbar">
 
         {loading ? (
           <>
@@ -341,11 +351,10 @@ export default function PokemonMarketplace() {
                   <button
                     key={filter}
                     onClick={() => setActiveFilter(filter)}
-                    className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${
-                      activeFilter === filter
-                        ? "bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)]"
-                        : "border border-gray-700/50 bg-gray-900/40 text-gray-400 hover:border-gray-600 hover:text-white"
-                    }`}
+                    className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${activeFilter === filter
+                      ? "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+                      : "border border-gray-700/50 bg-gray-900/40 text-gray-400 hover:border-gray-600 hover:text-white"
+                      }`}
                   >
                     <span>{TYPE_FILTER_ICONS[filter] || "⭐"}</span> {filter === "All Types" ? "All Types" : capitalize(filter)}
                   </button>
