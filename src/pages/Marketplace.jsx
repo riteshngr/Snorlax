@@ -737,12 +737,6 @@ export default function Marketplace() {
               🪙 {userCredits.toLocaleString()}
             </p>
           </div>
-          <div className="text-center">
-            <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500">Gems</p>
-            <p className="flex items-center gap-1 text-sm font-black text-blue-400">
-              💎 {userGems}
-            </p>
-          </div>
         </div>
 
         {/* User Avatar */}

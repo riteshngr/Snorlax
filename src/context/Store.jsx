@@ -15,10 +15,20 @@ import { onAuthChange, logoutUser } from "../services/auth";
 import {
   onUserProfile,
   onUserInventory,
+  onShopState,
+  updateShopStock,
+  buyStoneTransaction,
   updateUserCredits,
+  updateUserStones,
   addCardsToInventory as dbAddCardsToInventory,
   removeCardFromInventory as dbRemoveCardFromInventory,
+  sellCardTransaction,
+  bulkSellCardsTransaction,
 } from "../services/db";
+import { fetchPokemonById } from "../services/pokemon";
+import { generateCard } from "../utils/cardGenerator";
+import { generateShopStock, RESTOCK_INTERVAL_MS } from "../services/shop";
+import { useRef } from "react";
 
 // ─── Auth Context ────────────────────────────────────────────
 
@@ -40,6 +50,16 @@ export function useUserData() {
   return ctx;
 }
 
+const SELL_PRICES = {
+  Common: 30,
+  Uncommon: 50,
+  Rare: 120,
+  Epic: 250,
+  Legendary: 600,
+  Mythical: 2000,
+  Ultra: 2500, // Kept higher for special ultra cards
+};
+
 // ─── Provider ────────────────────────────────────────────────
 
 export default function StoreProvider({ children }) {
@@ -50,7 +70,9 @@ export default function StoreProvider({ children }) {
   // User data state
   const [profile, setProfile] = useState(null);
   const [inventory, setInventory] = useState([]);
+  const [shop, setShop] = useState(null);
   const [dataLoading, setDataLoading] = useState(true);
+  const restockTriggeredRef = useRef(false);
 
   // Listen to Firebase Auth state
   useEffect(() => {
@@ -103,6 +125,48 @@ export default function StoreProvider({ children }) {
     };
   }, [user]);
 
+  // Listen to global shop state
+  useEffect(() => {
+    const unsubscribe = onShopState(async (shopData) => {
+      if (!shopData || !shopData.stock) {
+        const initialStock = generateShopStock();
+        await updateShopStock(initialStock);
+        return;
+      }
+      setShop(shopData);
+      
+      // Reset the local "triggered" lock whenever the shop state changes from the server
+      restockTriggeredRef.current = false;
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Background Restock Ticker (Runs every second)
+  useEffect(() => {
+    const ticker = setInterval(async () => {
+      if (!shop || !shop.lastRestockTime) return;
+
+      const lastRestock = shop.lastRestockTime?.toMillis() || 0;
+      const now = Date.now();
+      
+      if (now - lastRestock >= RESTOCK_INTERVAL_MS && !restockTriggeredRef.current) {
+        console.log("Automatic restock triggered...");
+        restockTriggeredRef.current = true; // Lock it locally
+        
+        try {
+          const newStock = generateShopStock();
+          await updateShopStock(newStock);
+        } catch (err) {
+          console.error("Auto restock failed:", err);
+          restockTriggeredRef.current = false; // Release lock on error
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(ticker);
+  }, [shop]);
+
   // ── Actions ──
 
   const handleLogout = useCallback(async () => {
@@ -148,6 +212,70 @@ export default function StoreProvider({ children }) {
     [user]
   );
 
+  const evolvePokemon = useCallback(
+    async (stoneId, fromPokemonDocId, toPokemonId) => {
+      if (!user || !profile) return { success: false, error: "Not logged in" };
+
+      try {
+        // 1. Verify requirements
+        const stoneCount = profile.stones?.[stoneId] || 0;
+        if (stoneCount <= 0) return { success: false, error: "Missing required stone" };
+
+        const basePokemon = inventory.find(card => card.docId === fromPokemonDocId);
+        if (!basePokemon) return { success: false, error: "Base Pokémon not found in inventory" };
+
+        // 2. Fetch evolved data
+        const evolvedData = await fetchPokemonById(toPokemonId);
+        const newCard = generateCard(evolvedData);
+
+        // 3. Perform evolution (database updates)
+        // Deduct stone
+        await updateUserStones(user.uid, stoneId, -1);
+        // Remove base pokemon
+        await dbRemoveCardFromInventory(user.uid, fromPokemonDocId);
+        // Add new pokemon
+        await dbAddCardsToInventory(user.uid, [newCard]);
+
+        return { success: true, newCard };
+      } catch (err) {
+        console.error("Evolution failed:", err);
+        return { success: false, error: "Evolution failed. Try again." };
+      }
+    },
+    [user, profile, inventory]
+  );
+
+  const purchaseStone = useCallback(
+    async (stoneId, price) => {
+      if (!user) return { success: false, error: "AUTH_REQUIRED" };
+      return await buyStoneTransaction(user.uid, stoneId, price);
+    },
+    [user]
+  );
+
+  const sellCard = useCallback(
+    async (cardDocId, rarity) => {
+      if (!user) return { success: false, error: "AUTH_REQUIRED" };
+      const price = SELL_PRICES[rarity] || 40;
+      return await sellCardTransaction(user.uid, cardDocId, price);
+    },
+    [user]
+  );
+
+  const bulkSellCards = useCallback(
+    async (cardsMetadata) => {
+      if (!user) return { success: false, error: "AUTH_REQUIRED" };
+      
+      const payload = cardsMetadata.map(c => ({
+        docId: c.docId,
+        price: SELL_PRICES[c.rarity] || 40
+      }));
+
+      return await bulkSellCardsTransaction(user.uid, payload);
+    },
+    [user]
+  );
+
   // ── Auth context value ──
   const authValue = {
     user,
@@ -164,6 +292,11 @@ export default function StoreProvider({ children }) {
     removeCardFromInventory,
     spendCredits,
     earnCredits,
+    evolvePokemon,
+    purchaseStone,
+    sellCard,
+    bulkSellCards,
+    shop,
   };
 
   return (

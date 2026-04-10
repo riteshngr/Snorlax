@@ -243,10 +243,6 @@ export default function PokemonMarketplace() {
             <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500">Credits</p>
             <p className="flex items-center gap-1 text-sm font-black text-amber-400">🪙 {userCredits.toLocaleString()}</p>
           </div>
-          <div className="text-center">
-            <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500">Gems</p>
-            <p className="flex items-center gap-1 text-sm font-black text-blue-400">💎 {userGems}</p>
-          </div>
         </div>
         {/* Spacer for top-right back button */}
         <div className="w-9" />

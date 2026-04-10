@@ -36,8 +36,20 @@ export async function createUserProfile(uid, { username, email }) {
   await setDoc(userRef, {
     username,
     email,
-    credits: 1000,
+    credits: 200000,
     gems: 10,
+    stones: {
+      "fire-stone": 2,
+      "water-stone": 2,
+      "thunder-stone": 2,
+      "leaf-stone": 2,
+      "moon-stone": 1,
+      "sun-stone": 1,
+      "ice-stone": 1,
+      "dusk-stone": 1,
+      "dawn-stone": 1,
+      "shiny-stone": 1,
+    },
     createdAt: serverTimestamp(),
   });
 }
@@ -69,6 +81,16 @@ export function onUserProfile(uid, callback) {
 export async function updateUserCredits(uid, delta) {
   const userRef = doc(db, "users", uid);
   await updateDoc(userRef, { credits: increment(delta) });
+}
+
+/**
+ * Update user stone counts by a delta.
+ */
+export async function updateUserStones(uid, stoneId, delta) {
+  const userRef = doc(db, "users", uid);
+  await updateDoc(userRef, {
+    [`stones.${stoneId}`]: increment(delta),
+  });
 }
 
 // ─── Inventory ───────────────────────────────────────────────
@@ -280,6 +302,138 @@ export function onActiveAuctions(callback) {
 export async function cancelAuction(auctionId) {
   const auctionRef = doc(db, "auctions", auctionId);
   await updateDoc(auctionRef, { status: "cancelled" });
+}
+
+// ─── Stone Shop ──────────────────────────────────────────────
+
+/**
+ * Listen to the central shop document.
+ */
+export function onShopState(callback) {
+  const shopRef = doc(db, "shops", "stoneShop");
+  return onSnapshot(shopRef, (snap) => {
+    callback(snap.exists() ? snap.data() : null);
+  });
+}
+
+/**
+ * Update the global shop restock state.
+ */
+export async function updateShopStock(stock) {
+  const shopRef = doc(db, "shops", "stoneShop");
+  await updateDoc(shopRef, {
+    stock,
+    lastRestockTime: serverTimestamp(),
+  });
+}
+
+/**
+ * Buy a stone using a Firestore transaction for safety.
+ */
+export async function buyStoneTransaction(uid, stoneId, price) {
+  const userRef = doc(db, "users", uid);
+  const shopRef = doc(db, "shops", "stoneShop");
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const userSnap = await transaction.get(userRef);
+      const shopSnap = await transaction.get(shopRef);
+
+      if (!userSnap.exists() || !shopSnap.exists()) {
+        throw new Error("DATA_NOT_FOUND");
+      }
+
+      const userData = userSnap.data();
+      const shopData = shopSnap.data();
+      const currentStock = shopData.stock?.[stoneId] || 0;
+
+      // 1. Validation
+      if (currentStock <= 0) throw new Error("SOLD_OUT");
+      if (userData.credits < price) throw new Error("INSUFFICIENT_FUNDS");
+
+      // 2. Updates
+      // Deduct credits and add stone
+      transaction.update(userRef, {
+        credits: increment(-price),
+        [`stones.${stoneId}`]: increment(1),
+      });
+
+      // Update shop stock map
+      transaction.update(shopRef, {
+        [`stock.${stoneId}`]: increment(-1)
+      });
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Purchase transaction failed:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Sell a card using a Firestore transaction for safety.
+ * Deletes the card from inventory and adds credits to the user profile.
+ */
+export async function sellCardTransaction(uid, cardDocId, price) {
+  const userRef = doc(db, "users", uid);
+  const cardRef = doc(db, "users", uid, "inventory", cardDocId);
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const userSnap = await transaction.get(userRef);
+      const cardSnap = await transaction.get(cardRef);
+
+      if (!userSnap.exists() || !cardSnap.exists()) {
+        throw new Error("DATA_NOT_FOUND");
+      }
+
+      // 1. Delete the card
+      transaction.delete(cardRef);
+
+      // 2. Add credits
+      transaction.update(userRef, {
+        credits: increment(price),
+      });
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Sell transaction failed:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Sell multiple cards at once using a Firestore transaction.
+ * payload: Array of { docId, price }
+ */
+export async function bulkSellCardsTransaction(uid, payload) {
+  const userRef = doc(db, "users", uid);
+  const totalPayout = payload.reduce((sum, item) => sum + item.price, 0);
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists()) throw new Error("USER_NOT_FOUND");
+
+      // 1. Delete all selected cards
+      payload.forEach((item) => {
+        const cardRef = doc(db, "users", uid, "inventory", item.docId);
+        transaction.delete(cardRef);
+      });
+
+      // 2. Add total credits
+      transaction.update(userRef, {
+        credits: increment(totalPayout),
+      });
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Bulk sell transaction failed:", error);
+    return { success: false, error: error.message };
+  }
 }
 
 export { db };

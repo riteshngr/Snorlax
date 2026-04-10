@@ -52,10 +52,14 @@ function AppContent() {
   );
 }
 
+import { WeatherProvider } from "./context/WeatherContext";
+
 function App() {
   return (
     <StoreProvider>
-      <AppContent />
+      <WeatherProvider>
+        <AppContent />
+      </WeatherProvider>
     </StoreProvider>
   );
 }

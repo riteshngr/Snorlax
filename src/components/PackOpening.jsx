@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { fetchRandomPokemon } from "../services/pokemon";
 import { generateCard } from "../utils/cardGenerator";
 import PokemonCard from "./PokemonCard";
+import { useWeather } from "../context/WeatherContext";
 
 const RARITY_HINTS = {
   Legendary: { letter: 'R', color: 'text-yellow-400' },
@@ -32,6 +33,9 @@ export default function PackOpening({ onReset, activePanel, addCardsToInventory 
   // New states for the collection animation
   const [isCollecting, setIsCollecting] = useState(false);
 
+  const { weather } = useWeather();
+  const boostedType = weather?.boostedType;
+
   /**
    * Fetch and generate cards on mount
    */
@@ -39,11 +43,11 @@ export default function PackOpening({ onReset, activePanel, addCardsToInventory 
     async function init() {
       try {
         const pokemonList = await Promise.all([
-          fetchRandomPokemon(),
-          fetchRandomPokemon(),
-          fetchRandomPokemon(),
-          fetchRandomPokemon(),
-          fetchRandomPokemon(),
+          fetchRandomPokemon(boostedType),
+          fetchRandomPokemon(boostedType),
+          fetchRandomPokemon(boostedType),
+          fetchRandomPokemon(boostedType),
+          fetchRandomPokemon(boostedType),
         ]);
         const generatedCards = pokemonList.map(generateCard);
         setCards(generatedCards);
