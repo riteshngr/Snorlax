@@ -11,9 +11,10 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  deleteUser,
 } from "firebase/auth";
 import { auth } from "../../backend/firebaseConfig";
-import { createUserProfile } from "./db";
+import { createUserProfile, deleteUserData } from "./db";
 
 /**
  * Register a new user with email, password, and display username.
@@ -79,4 +80,20 @@ export function onAuthChange(callback) {
  */
 export function getCurrentUser() {
   return auth.currentUser;
+}
+
+/**
+ * Delete the current user's account and all associated data.
+ * 1. Deletes Firestore data (inventory + profile)
+ * 2. Deletes the Firebase Auth account
+ */
+export async function deleteAccount() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No user signed in");
+
+  // Delete Firestore data first (while still authenticated)
+  await deleteUserData(user.uid);
+
+  // Then delete the Firebase Auth account
+  await deleteUser(user);
 }

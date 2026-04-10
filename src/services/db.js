@@ -36,7 +36,7 @@ export async function createUserProfile(uid, { username, email }) {
   await setDoc(userRef, {
     username,
     email,
-    credits: 200000,
+    credits: 1500,
     gems: 10,
     stones: {
       "fire-stone": 2,
@@ -434,6 +434,25 @@ export async function bulkSellCardsTransaction(uid, payload) {
     console.error("Bulk sell transaction failed:", error);
     return { success: false, error: error.message };
   }
+}
+
+/**
+ * Delete all of a user's Firestore data (inventory + profile).
+ * Must be called BEFORE deleting the Firebase Auth account.
+ */
+export async function deleteUserData(uid) {
+  const batch = writeBatch(db);
+
+  // 1. Delete all inventory documents
+  const inventoryRef = collection(db, "users", uid, "inventory");
+  const inventorySnap = await getDocs(inventoryRef);
+  inventorySnap.docs.forEach((d) => batch.delete(d.ref));
+
+  // 2. Delete the user profile document
+  const userRef = doc(db, "users", uid);
+  batch.delete(userRef);
+
+  await batch.commit();
 }
 
 export { db };

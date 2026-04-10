@@ -11,7 +11,7 @@
  */
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { onAuthChange, logoutUser } from "../services/auth";
+import { onAuthChange, logoutUser, deleteAccount } from "../services/auth";
 import {
   onUserProfile,
   onUserInventory,
@@ -177,6 +177,16 @@ export default function StoreProvider({ children }) {
     }
   }, []);
 
+  const handleDeleteAccount = useCallback(async () => {
+    try {
+      await deleteAccount();
+      // Auth state listener will auto-clear user/profile/inventory
+    } catch (err) {
+      console.error("Account deletion failed:", err);
+      throw err;
+    }
+  }, []);
+
   const addCardsToInventory = useCallback(
     async (cards) => {
       if (!user) return;
@@ -281,6 +291,7 @@ export default function StoreProvider({ children }) {
     user,
     loading: authLoading,
     logout: handleLogout,
+    deleteAccount: handleDeleteAccount,
   };
 
   // ── User data context value ──

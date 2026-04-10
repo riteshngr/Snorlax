@@ -18,6 +18,8 @@ export default function DashboardLayout() {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedDocIds, setSelectedDocIds] = useState(new Set());
   const [showBulkSellModal, setShowBulkSellModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const RARITY_MAP = {
     "Mythical": 1,
@@ -32,7 +34,7 @@ export default function DashboardLayout() {
     "fire", "water", "grass", "electric", "psychic", "poison", "normal", "flying"
   ];
 
-  const { user, logout } = useAuth();
+  const { user, logout, deleteAccount } = useAuth();
   const { profile, inventory, addCardsToInventory, spendCredits, sellCard, bulkSellCards } = useUserData();
 
   const closePanel = () => setActivePanel("home");
@@ -141,13 +143,20 @@ export default function DashboardLayout() {
             <>
               {/* Invisible overlay to close on outside click */}
               <div className="fixed inset-0 z-[70]" onClick={() => setShowUserMenu(false)} />
-              <div className="absolute right-0 top-full mt-1 w-40 rounded-xl border border-gray-700/50 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-[80] animate-in fade-in">
-                <div className="p-2">
+              <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border border-gray-700/50 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-[80] animate-in fade-in">
+                <div className="p-2 space-y-1">
                   <button
                     onClick={() => { logout(); setShowUserMenu(false); }}
-                    className="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-300 hover:bg-gray-800 transition-colors"
                   >
                     🚪 Sign Out
+                  </button>
+                  <div className="h-[1px] bg-gray-800 mx-1" />
+                  <button
+                    onClick={() => { setShowDeleteConfirm(true); setShowUserMenu(false); }}
+                    className="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    🗑️ Delete Account
                   </button>
                 </div>
               </div>
@@ -463,6 +472,23 @@ export default function DashboardLayout() {
                     >
                       ✕
                     </button>
+                    {/* Sell button in expanded view */}
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const card = sortedInventory.find((c, i) => i === expandedCard.idx);
+                        setCardToSell({ ...expandedCard.card, docId: card?.docId });
+                        setExpandedCard(null);
+                      }}
+                      className="group/sell mt-4 w-full relative flex items-center justify-center gap-2 rounded-xl bg-red-600/90 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-red-600/20 hover:bg-red-500 hover:scale-105 active:scale-95 transition-all"
+                    >
+                      <span>Sell:</span>
+                      <span className="text-amber-300">{getSellPrice(expandedCard.card.rarity)} 🪙</span>
+                      <div className="absolute -inset-0.5 rounded-[13px] border border-red-400 opacity-0 group-hover/sell:opacity-30 group-hover/sell:animate-pulse" />
+                    </motion.button>
                   </motion.div>
                 </motion.div>
               )}
@@ -636,6 +662,69 @@ export default function DashboardLayout() {
       </AnimatePresence>
 
       {activePanel === "home" && <WeatherWidget />}
+
+      {/* DELETE ACCOUNT CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-md px-4"
+            onClick={() => !deleting && setShowDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="max-w-sm w-full bg-gray-950 border border-red-500/30 rounded-3xl p-8 shadow-[0_20px_50px_rgba(220,38,38,0.15)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-red-500/20 rounded-full blur-2xl animate-pulse" />
+                  <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-red-950/80 border border-red-500/30 text-4xl shadow-xl">
+                    ⚠️
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-black text-white uppercase tracking-tight">Delete Account?</h3>
+                <p className="text-sm text-gray-500 mt-3 mb-8">
+                  This will <span className="text-red-400 font-bold">permanently delete</span> your account, all your cards, credits, and progress.
+                  <br /><br />
+                  <span className="text-red-400/80 text-[10px] font-bold uppercase tracking-widest">This action cannot be undone</span>
+                </p>
+
+                <div className="flex flex-col w-full gap-3">
+                  <button
+                    disabled={deleting}
+                    onClick={async () => {
+                      setDeleting(true);
+                      try {
+                        await deleteAccount();
+                        setShowDeleteConfirm(false);
+                      } catch (err) {
+                        alert("Failed to delete account: " + err.message);
+                        setDeleting(false);
+                      }
+                    }}
+                    className="w-full py-4 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 text-xs font-black text-white shadow-xl shadow-red-900/30 hover:from-red-500 hover:to-red-600 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deleting ? "Deleting..." : "Yes, Delete Everything"}
+                  </button>
+                  <button
+                    disabled={deleting}
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="w-full py-3.5 rounded-2xl bg-gray-900 text-[10px] font-black text-gray-500 hover:bg-gray-800 hover:text-white transition-all uppercase tracking-widest border border-gray-800 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
