@@ -1,43 +1,81 @@
-# Snorlax Gacha & Dashboard Project
+# PokeVault — Pokémon Gacha Simulator & Marketplace
 
-Welcome to the Snorlax project! This application is a Pokemon-themed Gacha system integrated into a high-end dashboard. This README provides a map of the codebase for developers and contributors.
+## Team Name
+Snorlax
 
-## 🚀 Technology Stack
-- **Frontend**: React + Vite
-- **Styling**: Tailwind CSS v4
-- **Animations**: Framer Motion
-- **Data Source**: PokeAPI
+## Team Members
+- Nilanjan Chavan (GitHub: @nilanjanchavan)
+- Ritesh Nagar (GitHub: @riteshngr)
+- Yashitha Chalicheemala (GitHub: @yashithac618)
+- Nishant Jadaun (GitHub: @nishantjadaun26)
+- Palak Dasauni (GitHub: @dasaunipalak)
 
-## 📂 Project Structure: What is Where?
+# Repo link
+https://github.com/riteshngr/Snorlax
 
-### 🏗️ Core & Entry Points
-- **[main.jsx](src/main.jsx)**: The starting point of the application. It mounts the React tree to the HTML root.
-- **[App.jsx](src/App.jsx)**: The central orchestrator. It controls the cinematic flow, starting with the Pokeball Splash and then revealing the Dashboard.
-- **[index.css](src/index.css)**: Global styles, design tokens, and custom keyframe animations (like the pack tearing effect).
+## Idea Chosen
+Custom: **PokeVault — Pokémon Card Gacha Simulator with Real-Time Marketplace**
 
-### 🖥️ Layout & Navigation
-- **[DashboardLayout.jsx](src/components/layout/DashboardLayout.jsx)**: The main UI structure. It contains the navigation tabs (Recipes, Market, Inventory) and the logic for sliding panels. It also hosts the central Gacha zone.
+## Problem Statement
+Trading card games are exciting, but physical card packs are expensive and inaccessible for many fans. PokeVault brings the thrill of opening Pokémon card packs to the web — complete with cinematic animations, a virtual economy, rare card pulls, evolution mechanics, and a real-time auction marketplace where users can trade cards with others.
 
-### 🃏 Gacha & Card System
-- **[PokeballSplash.jsx](src/components/gacha/PokeballSplash.jsx)**: The cinematic entrance. Handles the Pokeball opening animation and the initial app reveal.
-- **[CardPack.jsx](src/components/CardPack.jsx)**: The interactive Pokemon pack. Includes the metallic design, shaking animation, and "Open" logic.
-- **[PackOpening.jsx](src/components/PackOpening.jsx)**: The logic hub for gacha reveals. It fetches 5 random Pokemon, runs the "tear" animation, and fans out the cards. It also manages the interactive stack (z-index) of cards.
-- **[PokemonCard.jsx](src/components/PokemonCard.jsx)**: The UI for individual cards. Features a 3D flip effect, type-based gradients, and rarity badges.
-- **[AttackRow.jsx](src/components/AttackRow.jsx)**: A small sub-component for rendering attack stats within a card.
+## Tech Stack
+- **React 19** — UI framework
+- **Vite 8** — Lightning-fast build tool
+- **Tailwind CSS v4** — Utility-first styling
+- **Framer Motion** — Cinematic animations & transitions
+- **Firebase Auth** — User authentication (email/password)
+- **Firebase Firestore** — Real-time database for profiles, inventory, auctions & shop
+- **PokeAPI** — Pokémon data source (sprites, stats, types)
+- **Vercel** — Deployment & hosting
 
-### 🛒 Features & Pages
-- **[Marketplace.jsx](src/pages/Marketplace.jsx)**: A complex trading UI with filters, search, and featured listings.
+## Implementation Details
 
-### ⚙️ Utilities & Services
-- **[pokemon.js](src/services/pokemon.js)**: The service layer that communicates with PokeAPI to fetch random monster data.
-- **[cardGenerator.js](src/utils/cardGenerator.js)**: The algorithm that determines card stats, moves, and rarity based on the Pokemon's base stats.
-- **[typeColors.js](src/utils/typeColors.js)**: Central repository for all type-specific colors, gradients, and glow effects (Fire, Water, Dragon, etc.).
+### Architecture
+The app follows a **context-driven architecture** with two global providers:
+- **AuthContext** — Manages Firebase authentication state, login/logout/delete flows
+- **UserDataContext** — Real-time Firestore listeners for user profile, inventory, and shop state
 
-## 🛠️ Key Logic Notations
-- **Z-Index Hierarchy**: 
-    - Panels/Modals: `z-[60]`
-    - Active Card: `z-[50]`
-    - Regular Cards: `z-[30]`
-    - Dashboard Tabs: `z-[10]`
-- **State Flow**: The `DashboardLayout` passes its navigation state to the `PackOpening` component to ensure the card stack resets whenever a user switches tabs.
+### Key Features
+- **🎴 Gacha Pack Opening** — Cinematic card pack tearing animation revealing 5 random Pokémon cards with rarity-based pulls (Common → Mythical)
+- **💰 Virtual Economy** — Users start with 1,500 credits and earn more by selling cards
+- **📦 The Vault (Inventory)** — Full card collection management with sorting by rarity/type, individual & bulk sell, and expanded card inspection
+- **🏪 Stone Shop** — Purchase evolution stones with auto-restocking inventory and rarity tiers
+- **🔄 Evolution System** — Use evolution stones to evolve Pokémon in your collection (e.g., Pikachu → Raichu with Thunder Stone)
+- **🏛️ Real-Time Marketplace** — Auction system with live bidding, race-condition-safe transactions, and seller listings
+- **🌤️ Weather Widget** — Dynamic weather display
+- **✨ Premium UI** — Pokeball splash screen, 3D card flips, click spark effects, glassmorphism, and micro-animations throughout
 
+### State Management
+- All data flows through **real-time Firestore `onSnapshot` listeners**, so changes reflect instantly across all open sessions
+- **Firestore transactions** are used for all financial operations (buying, selling, bidding) to prevent race conditions
+- Inventory and profile data are kept in sync with **batch writes**
+
+### Algorithms
+- **Card Rarity System** — Based on Pokémon base stat totals: Common (≤300), Uncommon (301–400), Rare (401–475), Epic (476–535), Legendary (536–600), Mythical (600+)
+- **Shop Restock** — Timed auto-restock with weighted rarity distribution (60% Common, 25% Rare, 12% Legendary, 3% Mythical)
+
+## How to Run Locally
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/riteshngr/Snorlax.git
+
+# 2. Navigate into the project
+cd Snorlax
+
+# 3. Install dependencies
+npm install
+
+# 4. Start the development server
+npm run dev
+```
+
+The app will be running at `http://localhost:5173`
+
+## Live Demo
+🔗 **[https://snorlax-weld.vercel.app](https://snorlax-weld.vercel.app)**
+
+## Screenshots / Demo
+
+🎬 **Demo Video**: [https://youtu.be/oafwAICI6n8](https://youtu.be/oafwAICI6n8)
